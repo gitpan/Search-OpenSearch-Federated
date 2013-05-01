@@ -3,7 +3,10 @@ package Search::OpenSearch::Federated;
 use strict;
 use warnings;
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
+
+use base 'Search::Tools::Object';
+__PACKAGE__->mk_accessors(qw( fields urls total timeout ));
 
 use Carp;
 use Data::Dump qw( dump );
@@ -27,11 +30,11 @@ my $XMLer = Search::Tools::XML->new();
 my $XML_ESCAPER = Data::Transformer->new(
     normal => sub { local ($_) = shift; $$_ = $XMLer->escape($$_); } );
 
-sub new {
-    my $class = shift;
-    my %args  = @_;
-    $args{fields} ||= [qw( title id author link summary tags modified )];
-    return bless \%args, $class;
+sub init {
+    my $self = shift;
+    $self->SUPER::init(@_);
+    $self->{fields} ||= [qw( title id author link summary tags modified )];
+    return $self;
 }
 
 sub search {
@@ -50,14 +53,6 @@ sub search {
 
 }
 
-sub fields {
-    return shift->{fields};
-}
-
-sub total {
-    return shift->{total};
-}
-
 sub _aggregate {
     my $self      = shift;
     my $responses = shift;
@@ -67,7 +62,9 @@ sub _aggregate {
 
 RESP: for my $resp (@$responses) {
 
-        #warn sprintf( "response for %s\n", $resp->request->uri );
+        my $req_uri = $resp->request->uri;
+        $self->debug
+            and warn sprintf( "response for %s\n", $req_uri );
         if ( $resp->content_type eq 'application/json' ) {
             my $r = decode_json( $resp->content );
             if ( $r->{results} ) {
@@ -75,7 +72,7 @@ RESP: for my $resp (@$responses) {
             }
             $total += $r->{total} || 0;
         }
-        if ( $resp->content_type eq 'application/xml' ) {
+        elsif ( $resp->content_type eq 'application/xml' ) {
             my $xml = $resp->content;
 
             #warn $xml;
@@ -143,6 +140,10 @@ RESP: for my $resp (@$responses) {
 
             push @$results, @entries;
         }
+        else {
+            croak sprintf( "Unsupported response type '%s' for %s\n",
+                scalar $resp->content_type, $req_uri );
+        }
     }
     $self->{total} = $total;
     return [ sort { $b->{score} <=> $a->{score} } @$results ];
@@ -157,7 +158,7 @@ sub _fetch {
 
     my $response = $ua->get($url);
 
-    #warn "got response for $url: " . $response->status_line;
+    $self->debug and warn "got response for $url: " . $response->status_line;
     return $response;
 }
 
@@ -171,10 +172,10 @@ Search::OpenSearch::Federated - aggregate OpenSearch results
 
 =head1 SYNOPSIS
 
- my $ms = APM::FedSearch::MultiSearch->new(
+ my $ms = Search::OpenSearch::Federated->new(
     urls    => [
-        'http://someplace.org/search?q=foo',
-        'http://someother.org/search?q=foo',
+        'http://some-site.org/search?q=foo',
+        'http://some-other-site.org/search?q=foo',
     ],
     timeout => 10,  # very generous
  );
@@ -186,12 +187,36 @@ Search::OpenSearch::Federated - aggregate OpenSearch results
      print "\n";
  }
 
+=head1 DESCRIPTION
+
+Search::OpenSearch::Federated is for aggregating multiple OpenSearch responses
+into a single result set. Use it as a client for Search::OpenSearch::Engine-powered
+servers or for any server that provides OpenSearch-style results.
+
 =head1 METHODS
+
+Search::OpenSearch::Federated isa Search::Tools::Object.
 
 =head2 new( I<args> )
 
 Constructor. I<args> should include key C<urls> with value of
-an array reference.
+an array reference. Supported I<args> keys are:
+
+=over
+
+=item urls I<arrayref>
+
+=item timeout I<n>
+
+=item fields I<arrayref>
+
+=item debug 0|1
+
+=back
+
+=head2 init
+
+Internal initialization method. Overrides Search::Tools::Object->init.
 
 =head2 search
 
@@ -251,6 +276,8 @@ L<http://search.cpan.org/dist/Search-OpenSearch-Federated/>
 
 =head1 ACKNOWLEDGEMENTS
 
+Thanks to American Public Media and the state of Minnesota for sponsoring the 
+development of this module.
 
 =head1 LICENSE
 
