@@ -23,6 +23,7 @@ requires:
   Data::Transformer: 0
   JSON: 0
   LWP::UserAgent: 0
+  Normalize: 0
   Parallel::Iterator: 0
   Scalar::Util: 0
   Search::Tools: 0.9
@@ -35,4 +36,4 @@ resources:
   homepage: https://github.com/karpet/search-opensearch-federated-perl
   license: http://dev.perl.org/licenses/
   repository: http://github.com/karpet/search-opensearch-federated-perl
-version: 0.003
+version: 0.004
