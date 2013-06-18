@@ -36,4 +36,4 @@ resources:
   homepage: https://github.com/karpet/search-opensearch-federated-perl
   license: http://dev.perl.org/licenses/
   repository: http://github.com/karpet/search-opensearch-federated-perl
-version: 0.004
+version: 0.005

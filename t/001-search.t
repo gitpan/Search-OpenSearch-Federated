@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 8;
+use Test::More tests => 10;
 use Data::Dump qw( dump );
 use lib 'lib';
 
@@ -11,20 +11,23 @@ SKIP: {
 
     if ( !$ENV{SOS_TEST} ) {
         diag "set SOS_TEST env var to test Federated results";
-        skip "set SOS_TEST env var to test Federated results", 7;
+        skip "set SOS_TEST env var to test Federated results", 9;
     }
 
     my $type = $ENV{SOS_TYPE} || 'XML';
 
     ok( my $ms = Search::OpenSearch::Federated->new(
             urls => [
-                "http://localhost:5000/search?f=0&q=test&t=$type",
-                "http://localhost:5000/search?f=0&q=turkey&t=$type",
+                "$ENV{SOS_TEST}/search?f=1&q=test&t=$type",
+                "$ENV{SOS_TEST}/search?f=1&q=turkey&t=$type",
             ],
-            timeout => 5,
+            timeout => 2,
+            debug   => 1,
         ),
         "new Federated object"
     );
+
+    #diag( dump($ms) );
 
     ok( my $resp = $ms->search(), "search()" );
 
@@ -52,5 +55,13 @@ R: for my $r (@$resp) {
     ok( !$failed_sort, "results sorted by score" );
 
     ok( $ms->total(), "get total" );
+
+    is( ref( $ms->subtotals ), 'HASH', "subtotals is a hash ref" );
+
+    #diag( dump $ms->subtotals );
+
+    is( ref( $ms->facets ), "HASH", "facets is a hash ref" );
+
+    #diag( dump $ms->facets );
 
 }
