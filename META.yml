@@ -8,7 +8,7 @@ configure_requires:
   ExtUtils::MakeMaker: 6.59
 distribution_type: module
 dynamic_config: 1
-generated_by: 'Module::Install version 1.06'
+generated_by: 'Module::Install version 1.08'
 license: http://dev.perl.org/licenses/
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -23,10 +23,11 @@ requires:
   Data::Transformer: 0
   JSON: 0
   LWP::UserAgent: 0
+  Moo: 0
   Normalize: 0
   Parallel::Iterator: 0
   Scalar::Util: 0
-  Search::Tools: 0.9
+  Search::Tools: '1.000'
   Test::More: 0
   XML::Feed: 0
   XML::Simple: 0
@@ -36,4 +37,4 @@ resources:
   homepage: https://github.com/karpet/search-opensearch-federated-perl
   license: http://dev.perl.org/licenses/
   repository: http://github.com/karpet/search-opensearch-federated-perl
-version: 0.005
+version: '0.006'
